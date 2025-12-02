@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcrypt"
 import { createUser, emailExists } from "@/lib/db"
-import { generateToken } from "@/lib/auth"
+import { generateRefreshToken, generateToken } from "@/lib/auth"
 
 export async function POST(request: Request) {
   try {
@@ -25,10 +25,12 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(password, saltRounds)
     const user = await createUser(email, hashedPassword, name)
     const token = generateToken({ userId: user.id, email: user.email })
+    const refreshToken = generateRefreshToken({ userId: user.id, email: user.email })
     return NextResponse.json(
       {
         success: true,
         token,
+        refreshToken,
         user: {
           id: user.id,
           email: user.email,

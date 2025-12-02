@@ -30,6 +30,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       if (data.token) {
         try {
           localStorage.setItem("auth-token", data.token)
+          localStorage.setItem("refresh-token", data.refreshToken)
         } catch {}
       }
       window.location.href = "/"

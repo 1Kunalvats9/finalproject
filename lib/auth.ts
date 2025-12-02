@@ -30,3 +30,9 @@ export function getTokenFromRequest(request: Request): string | null {
   return null
 }
 
+
+export function generateRefreshToken(payload: JWTPayload): string {
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: "30d",
+  } as jwt.SignOptions)
+}

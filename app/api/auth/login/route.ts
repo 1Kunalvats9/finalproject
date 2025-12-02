@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcrypt"
 import { getUserByEmail } from "@/lib/db"
 import { generateToken } from "@/lib/auth"
+import { generateRefreshToken } from "@/lib/auth"
 
 export async function POST(request: Request) {
   try {
@@ -27,11 +28,13 @@ export async function POST(request: Request) {
 
     // Generate JWT token
     const token = generateToken({ userId: user.id, email: user.email })
+    const refreshToken = generateRefreshToken({ userId: user.id, email: user.email })
 
     return NextResponse.json(
       {
         success: true,
         token,
+        refreshToken,
         user: {
           id: user.id,
           email: user.email,
