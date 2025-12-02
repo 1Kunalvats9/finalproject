@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   title: "ApniDukaan - Inventory Management Platform",
   description: "Own every aisle with ApniDukaan - Easy and fast inventory management with checkouts, sales analytics, and more",
   generator: "v0.app",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 }
 
 export default function RootLayout({

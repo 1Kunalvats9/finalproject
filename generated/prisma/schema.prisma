@@ -27,4 +27,59 @@ model User {
   shopCountry String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Relations to portal data (used mainly for backups/snapshots)
+  products  Product[]
+  customers Customer[]
+  sales     Sale[]
+}
+
+/// Core catalog item for a given user/store
+model Product {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  category        String?
+  quantity        Int      @default(0)
+  retailPrice     Float    @default(0) // MRP
+  wholesalePrice  Float    @default(0)
+  barcode         String   @unique
+  hsnSacCode      String?  @db.VarChar(64)
+  unit            String   @default("pc")
+  originalPrice   Float    @default(0)
+  discountedPrice Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// Lightweight customer record, keyed by phone
+model Customer {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber String
+  name        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sales Sale[]
+
+  @@unique([userId, phoneNumber])
+}
+
+/// POS checkout record with embedded line items
+model Sale {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  customerPhone String
+  billNumber    Int
+  items         Json
+  total         Float
+  createdAt     DateTime  @default(now())
+
+  @@index([userId, createdAt])
 }

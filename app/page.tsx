@@ -11,6 +11,7 @@ import { MagneticButton } from "@/components/magnetic-button"
 import { AuthModal } from "@/components/auth-modal"
 import { useAuth } from "@/hooks/use-auth"
 import { useRef, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -22,6 +23,7 @@ export default function Home() {
   const shaderContainerRef = useRef<HTMLDivElement>(null)
   const scrollThrottleRef = useRef<number | null>(null)
   const { user, logout } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     const checkShaderReady = () => {
@@ -248,10 +250,16 @@ export default function Home() {
         </div>
 
         {user ? (
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-xs text-foreground/60 hidden md:block">
+          <div className="flex items-center gap-3">
+            <span className="hidden font-mono text-xs text-foreground/60 md:block">
               {user.name || user.email}
             </span>
+            <MagneticButton
+              variant="primary"
+              onClick={() => router.push("/portal/dashboard")}
+            >
+              Dashboard
+            </MagneticButton>
             <MagneticButton variant="secondary" onClick={logout}>
               Logout
             </MagneticButton>

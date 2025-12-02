@@ -108,9 +108,50 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ProductScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  category: 'category',
+  quantity: 'quantity',
+  retailPrice: 'retailPrice',
+  wholesalePrice: 'wholesalePrice',
+  barcode: 'barcode',
+  hsnSacCode: 'hsnSacCode',
+  unit: 'unit',
+  originalPrice: 'originalPrice',
+  discountedPrice: 'discountedPrice',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CustomerScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  phoneNumber: 'phoneNumber',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SaleScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  customerId: 'customerId',
+  customerPhone: 'customerPhone',
+  billNumber: 'billNumber',
+  items: 'items',
+  total: 'total',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -123,9 +164,18 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
 
 exports.Prisma.ModelName = {
-  User: 'User'
+  User: 'User',
+  Product: 'Product',
+  Customer: 'Customer',
+  Sale: 'Sale'
 };
 /**
  * Create the Client
@@ -138,7 +188,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/kunalvats/Downloads/coding/CURRENT/finalproject/generated/prisma",
+      "value": "/Users/kunalvats/Downloads/coding/CURRENT/AD/finalproject/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -152,7 +202,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/kunalvats/Downloads/coding/CURRENT/finalproject/prisma/schema.prisma",
+    "sourceFilePath": "/Users/kunalvats/Downloads/coding/CURRENT/AD/finalproject/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -174,13 +224,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id          String   @id @default(uuid())\n  email       String   @unique\n  password    String\n  name        String?\n  shopName    String?\n  shopAddress String?\n  shopCity    String?\n  shopState   String?\n  isOnboarded Boolean  @default(false)\n  shopCountry String?\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n",
-  "inlineSchemaHash": "dafddfac8915bd89df96a9e49714ba57fb035c6205e21094af12e7d69d9680c6",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id          String   @id @default(uuid())\n  email       String   @unique\n  password    String\n  name        String?\n  shopName    String?\n  shopAddress String?\n  shopCity    String?\n  shopState   String?\n  isOnboarded Boolean  @default(false)\n  shopCountry String?\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  // Relations to portal data (used mainly for backups/snapshots)\n  products  Product[]\n  customers Customer[]\n  sales     Sale[]\n}\n\n/// Core catalog item for a given user/store\nmodel Product {\n  id              String   @id @default(uuid())\n  userId          String\n  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n  name            String\n  category        String?\n  quantity        Int      @default(0)\n  retailPrice     Float    @default(0) // MRP\n  wholesalePrice  Float    @default(0)\n  barcode         String   @unique\n  hsnSacCode      String?  @db.VarChar(64)\n  unit            String   @default(\"pc\")\n  originalPrice   Float    @default(0)\n  discountedPrice Float    @default(0)\n  createdAt       DateTime @default(now())\n  updatedAt       DateTime @updatedAt\n}\n\n/// Lightweight customer record, keyed by phone\nmodel Customer {\n  id          String   @id @default(uuid())\n  userId      String\n  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n  phoneNumber String\n  name        String?\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  sales Sale[]\n\n  @@unique([userId, phoneNumber])\n}\n\n/// POS checkout record with embedded line items\nmodel Sale {\n  id            String    @id @default(uuid())\n  userId        String\n  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)\n  customerId    String?\n  customer      Customer? @relation(fields: [customerId], references: [id])\n  customerPhone String\n  billNumber    Int\n  items         Json\n  total         Float\n  createdAt     DateTime  @default(now())\n\n  @@index([userId, createdAt])\n}\n",
+  "inlineSchemaHash": "deaf71c02028ce893dc9881a24fa130426aa2903d8864763a6c2b269aa1f0132",
   "copyEngine": false
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shopName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shopAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shopCity\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shopState\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isOnboarded\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"shopCountry\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shopName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shopAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shopCity\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shopState\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isOnboarded\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"shopCountry\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"products\",\"kind\":\"object\",\"type\":\"Product\",\"relationName\":\"ProductToUser\"},{\"name\":\"customers\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToUser\"},{\"name\":\"sales\",\"kind\":\"object\",\"type\":\"Sale\",\"relationName\":\"SaleToUser\"}],\"dbName\":null},\"Product\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ProductToUser\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"quantity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"retailPrice\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"wholesalePrice\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"barcode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"hsnSacCode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"unit\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"originalPrice\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"discountedPrice\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Customer\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"CustomerToUser\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"sales\",\"kind\":\"object\",\"type\":\"Sale\",\"relationName\":\"CustomerToSale\"}],\"dbName\":null},\"Sale\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"SaleToUser\"},{\"name\":\"customerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"customer\",\"kind\":\"object\",\"type\":\"Customer\",\"relationName\":\"CustomerToSale\"},{\"name\":\"customerPhone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"billNumber\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"items\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"total\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = undefined
 config.compilerWasm = undefined
